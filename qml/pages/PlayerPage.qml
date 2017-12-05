@@ -131,470 +131,68 @@ Page {
             }
 
         }
-        Item {
 
-            width: parent.width // + parent.maxDrag*2
-            anchors.top: pulleyTop.top
-            anchors.bottom: cassette.verticalCenter // mainPageHeader.bottom
-            z:-3
-            opacity: 0.15
-            Rectangle{
-                id: cassetteBgRect
-                anchors.fill: parent
-                color: Qt.rgba(Theme.highlightBackgroundColor.r, Theme.highlightBackgroundColor.g, Theme.highlightBackgroundColor.b, coverMouseArea.sideTriggerActive ? 1 : 1)
-            }
-
-            OpacityRampEffect {
-                sourceItem: cassetteBgRect
-                offset: 0.5//-0.5 * coverMouseArea.dragFactor
-                slope: 2 //coverMouseArea.sideTriggerActive ? 1.0 : 1.0
-
-                direction: OpacityRamp.TopToBottom
-            }
-
-        }
-
-        PageHeader {
-            //title: 'Talefish'
-
-            width: parent.width - ( page.isLandscape ? Theme.itemSizeLarge + Theme.paddingMedium : 0)
-
-            id: mainPageHeader
-            Label {
-                id: headerText
-                // Don't allow the label to extend over the page stack indicator
-                width: Math.min(implicitWidth, parent.width - Theme.pageStackIndicatorWidth * _depth - 2*Theme.paddingLarge)
-                text: 'Talefish'//+appstate.currentPosition;
-                truncationMode: TruncationMode.Fade
-                color: Theme.highlightColor
-                anchors {
-                    verticalCenter: parent.verticalCenter
-                    right: parent.right
-                    //                        rightMargin: sleepTimerWidget.visible ? sleepTimerWidget.width + Theme.paddingMedium * 2 : Theme.paddingLarge
-                    rightMargin: Theme.paddingLarge
-                }
-                font {
-                    pixelSize: Theme.fontSizeLarge
-                    family: Theme.fontFamilyHeading
-                }
-            }
-        }
-
-        Item {
-            id: backgroundCoverContainer
-            anchors.fill: coverImageContainer
-            z:-3
-            Image {
-                id: coverDisplayImage
-                source: coverImage.source
-                height: coverImage.paintedHeight
-                width: coverImage.paintedWidth
-                anchors.centerIn: parent
-                opacity: 0.3
-                y: coverImageContainer.y
-            }
-
-            OpacityRampEffect {
-                id: effectBackground
-                slope: 3 //the more, the shorter
-                offset: 0.55
-                sourceItem: coverDisplayImage
-                direction: OpacityRamp.TopToBottom
-                clampMax: 0.9
-                clampMin: 0.0
-            }
-
-        }
-
-
-        ProgressCassette {
-            id:cassette
-            width: Math.min( page.width, page.height) * 2
-            height: width
-            x: -width / 2
-            y: appstate.playlistActive && (appstate.playlistActive.coverImage != '') ? x : x/2
-            z: -2
-            opacity: 0.4
-            maximumValue: options.cassetteUseDirectoryDurationProgress ? totalPosition.maximumValue: appstate.playlistIndex > -1 ? appstate.playlist.get(appstate.playlistIndex).duration: 0
-            value: options.cassetteUseDirectoryDurationProgress ? totalPosition.value: appstate.currentPosition
-            running: options.useAnimations && options.usePlayerAnimations && isPlaying
-            //tapeColor: Theme.highlightColor
-
-        }
-        Item {
-            id: coverImageContainer
-
-            width: parent.width - (page.isLandscape ? Theme.itemSizeLarge + Theme.paddingMedium : 0)
-
-            y:page.isPortrait ? mainPageHeader.height : 0
-            height: parent.height - infoColumn.height - (page.isPortrait ? controlPanel.height + mainPageHeader.height : 0) + fileNameLabel.height + fileFolderLabel.height//Theme.itemSizeSmall / 3
+        Flow {
+            anchors.fill: parent
+            anchors.topMargin: Theme.paddingSmall
 
             Image {
                 id: coverImage
                 source: appstate.playlistActive && appstate.playlistIndex > -1 ? appstate.playlistActive.coverImage:''
-                property string previousSource
-                anchors.fill: parent
 
-                onSourceChanged: {
-                    if(previousSource){
-                        coverImageFadeout.source = previousSource;
-                        coverImageFadeout.opacity = coverImage.opacity;
-                        opacity = 0;
-                        createAnimation.start();
-                        destroyAnimation.start();
-                    }
-
-                    previousSource = source
-                }
-
-                fillMode: Image.PreserveAspectFit
-                opacity: 0.8
-                z:-1
-
-                NumberAnimation on opacity {
-                    id: createAnimation
-                    from: 0
-                    to: 0.8
-                    duration: 500
-                }
-                //Rectangle { anchors.fill: parent; color: "red"; opacity: 1; z:-1;}
-            }
-
-            Image {
-                id: coverImageFadeout
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                opacity: 0
-                z:-1
-
-                visible:appstate.playlistIndex > -1
-                NumberAnimation on opacity {
-                    id: destroyAnimation
-                    to: 0
-                    duration: 500
-                }
-
-
-            }
-
-            NumberAnimation on x {
-                id: animateCoverContainerXBack0
-                to: 0
-                duration: 500
-                easing.type: Easing.InOutQuad
-            }
-        }
-
-
-        OpacityRampEffect {
-            id: effect
-            //            slope: 3 //the more, the shorter
-            //            offset: 0.6
-            slope: 1 //the more, the shorter
-            offset: 0
-            sourceItem: coverImageContainer
-            direction: OpacityRamp.TopToBottom
-            clampMax: 0.9
-            clampMin: 0.15
-        }
-
-        Label {
-            anchors.fill: coverImageContainer
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Theme.highlightColor
-            text:qsTr('[No Cover]')
-            font.pixelSize: Theme.fontSizeLarge
-            opacity: coverImage.source ? 0 : 0.6
-            visible:appstate.playlistIndex > -1
-            Behavior on opacity { NumberAnimation { easing.type: Easing.OutCubic ; duration: 500 }}
-
-            clip:true
-        }
-
-        Label {
-            anchors.fill: coverImageContainer
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text:'No Cover'
-            font.pixelSize: Theme.fontSizeLarge
-            color: Theme.secondaryColor
-            opacity: coverImage.source ? 0 : 1
-
-            visible:appstate.playlistIndex > -1
-            Behavior on opacity { NumberAnimation { easing.type: Easing.OutCubic ; duration: 500 }}
-        }
-
-        Label {
-            anchors.fill: coverImageContainer
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text:qsTr('Nothing to play')
-            font.pixelSize: Theme.fontSizeLarge
-            color: Theme.highlightColor
-            visible:appstate.playlistIndex == -1 || !appstate.playlist.count
-            Text {
-                text: qsTr('Open Files by pulling down.')
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                font.pixelSize: Theme.fontSizeSmall
-                anchors.fill: parent
-                anchors.topMargin: Theme.itemSizeSmall
-                color: Theme.secondaryColor
-            }
-        }
-
-
-
-        MouseArea {
-            id: coverMouseArea
-
-
-            visible: options.playerSwipeForNextPrev && (appstate.playlist.count > 1 || appstate.currentPosition > options.skipBackTrackThreshold)
-            property bool sideTriggerActive: false
-            property alias target: coverImageContainer
-            anchors.fill: target
-            onClicked: {
-                //                    sleepTimer.restart();
-            }
-            onPressed: {
-                //                console.log('onpressed')
-            }
-            onMouseXChanged: {
-                var m = mouse, act = sideTriggerActive;
-                act = false;
-                if(target.x !== 0){
-
-                    switch(target.x){
-                    case drag.maximumX:
-                        act = true;
-                        break;
-                    case drag.minimumX:
-                        act = true;
-                        break;
-                    default:
-
-                    }
-                }
-                if(act !== sideTriggerActive){
-                    sideTriggerActive = act;
-                }
-            }
-
-            drag.target: target
-            drag.axis: Drag.XAxis
-            drag.threshold: 15
-            property int maxDrag: 100
-            drag.minimumX: appstate.playlistIndex < appstate.playlist.count-1 ? maxDrag*-1 : 0 //next
-            drag.maximumX: appstate.playlistIndex > 0 || appstate.currentPosition > options.skipBackTrackThreshold ? maxDrag:0 //prev
-
-            onReleased: {
-                animateCoverContainerXBack0.duration =  (dragValue / maxDrag) * 400
-                animateCoverContainerXBack0.start()
-                if(sideTriggerActive){
-                    app.log('Player Page: Slided to skip' )
-
-
-                    sideTriggerActive = false;
-                    if(target.x < 0){//next
-                        if(appstate.playlistIndex < appstate.playlist.count - 1){
-                            appstate.tplayer.playIndex(appstate.playlistIndex + 1, {isPlaying: appstate.tplayer.isplaying});
-
-                        } else {
-
-                            appstate.tplayer.playIndex(0, {isPlaying: appstate.tplayer.isplaying});
-                        }
-
-                    } else if(target.x > 0) {//prev
-                        if(appstate.currentPosition > options.skipBackTrackThreshold) {
-                            appstate.currentPosition = 0;
-                            appstate.player.seek(0)
-                        } else {
-                            appstate.tplayer.playIndex(appstate.playlistIndex - 1, {isPlaying: appstate.tplayer.isplaying});
-                        }
-                    }
-                }
-            }
-            property int dragValue: Math.abs(target.x)
-            property real dragFactor: maxDrag / dragValue
-            Item {
-                id: coverDraggedLabelContainer
-                height: parent.height
                 width: parent.width
+                height: width
 
-                visible: coverMouseArea.dragValue > coverMouseArea.maxDrag * 0.5
-                opacity: coverMouseArea.sideTriggerActive ? 1.0:0.0
-
-                Behavior on opacity { NumberAnimation { easing.type: Easing.OutCubic ; duration: 500 }}
-
-                Rectangle{
-                    id: coverDragRect
-                    color: Qt.rgba(Theme.highlightDimmerColor.r, Theme.highlightDimmerColor.g, Theme.highlightDimmerColor.b, 0.85)
-                    height: parent.height
-                    width: parent.width // + parent.maxDrag*2
-                    x:( -coverMouseArea.target.x )
-                }
-
-                OpacityRampEffect {
-                    sourceItem: coverDragRect
-                    offset: 0.0//-0.5 * coverMouseArea.dragFactor
-                    slope: parent.opacity * 0.8//coverMouseArea.sideTriggerActive ? 1.0 : 1.0
-
-                    direction: coverMouseArea.target.x > 0 ? OpacityRamp.RightToLeft: OpacityRamp.LeftToRight
-                }
-
-
-                Label {
-                    text: coverMouseArea.target.x > 0 ? (appstate.currentPosition > options.skipBackTrackThreshold? qsTr('Rewind Track'): qsTr('Previous Track')): qsTr('Next Track')
-                    wrapMode: 'WrapAtWordBoundaryOrAnywhere'
-                    horizontalAlignment: coverMouseArea.target.x > 0 ? Text.AlignRight: Text.AlignLeft // Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: Theme.highlightColor
-                    x:( -coverMouseArea.target.x ) + Theme.paddingSmall
-                    width: parent.width - (Theme.paddingSmall * 2)
-                    height: parent.height
-                }
+                fillMode: Image.PreserveAspectFit
             }
-            Item {
-                id: draggableContainer
-                x: -coverMouseArea.target.x
-
-                width: parent.width// + (coverMouseArea.drag.maximumX  ) + (-coverMouseArea.drag.minimumX)
-                height: parent.height
-                clip:true
-                Item {
-                    id: maxItem
-                    height: parent.height
-                    width:  coverMouseArea.dragValue*2 + coverMouseArea.maxDrag * 0.1
-                    visible: coverMouseArea.target.x < 0
-                    anchors.right: parent.right
-                    Rectangle{
-                        id: maxBg
-                        color: Qt.rgba(Theme.highlightBackgroundColor.r, Theme.highlightBackgroundColor.g, Theme.highlightBackgroundColor.b, coverMouseArea.sideTriggerActive ? 0.7 : 0.4)
-                        width: parent.width
-                        height: parent.height
-
-                    }
-                    OpacityRampEffect {
-                        sourceItem: maxBg
-                        offset: 0//-0.5 * coverMouseArea.dragFactor
-                        slope: coverMouseArea.sideTriggerActive ? 1.0 : 1.0
-
-                        direction: OpacityRamp.RightToLeft
-                    }
-                    Image {
-                        anchors.verticalCenter: parent.verticalCenter
-                        //                        anchors.right: parent.right
-                        x: parent.width-width + (coverMouseArea.maxDrag - coverMouseArea.dragValue) *2
-                        opacity: coverMouseArea.sideTriggerActive ? 1.0 : 0.3
-                        source: 'image://theme/icon-m-next?'+(coverMouseArea.sideTriggerActive ? Theme.highlightColor : Theme.primaryColor)
-                    }
-                }
-
-                Item {
-                    id: minItem
-                    height: parent.height
-                    width:  coverMouseArea.dragValue*2 + coverMouseArea.maxDrag * 0.1
-                    visible: coverMouseArea.target.x > 0
-                    anchors.left: parent.left
-                    Rectangle{
-                        id: minBg
-                        color: Qt.rgba(Theme.highlightBackgroundColor.r, Theme.highlightBackgroundColor.g, Theme.highlightBackgroundColor.b, coverMouseArea.sideTriggerActive ? 0.7 : 0.4)
-                        width: parent.width
-                        height: parent.height
-                        anchors.right: parent.right
-                    }
-                    OpacityRampEffect {
-                        sourceItem: minBg
-                        offset: 0//-0.5 * coverMouseArea.dragFactor
-                        slope: coverMouseArea.sideTriggerActive ? 1.0 : 1.0
-
-                        direction: OpacityRamp.LeftToRight
-                    }
-                    Image {
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        x: -(coverMouseArea.maxDrag - coverMouseArea.dragValue) *2
-                        //                        anchors.right: parent.right
-                        opacity: coverMouseArea.sideTriggerActive ? 1.0 : 0.3
-                        source: 'image://theme/icon-m-previous?'+(coverMouseArea.sideTriggerActive ? Theme.highlightColor : Theme.primaryColor)
-                    }
-                }
-            }
-
-        }
-
-        Item {
-            id: column
-            anchors.fill: parent
-
-            anchors.rightMargin: page.isLandscape ? Theme.itemSizeLarge + Theme.paddingMedium : 0
 
             Column {
-                id: infoColumn
                 width: parent.width
 
+                Label {
+                    width: parent.width - Theme.paddingSmall * 2
+                    id: fileNameLabel
+                    text: appstate.playlistActive ? appstate.playlistActive.baseName :''
 
-                spacing: Theme.paddingLarge
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: page.isPortrait? controlPanel.height : Theme.paddingMedium
+                    horizontalAlignment: Text.AlignHCenter
 
+                    color: Theme.highlightColor
+                    wrapMode: 'WrapAtWordBoundaryOrAnywhere'
+                }
 
+                Label {
+                    width: parent.width - Theme.paddingSmall * 2
+                    id: fileFolderLabel
+                    property string displayPath:appstate.playlistActive && appstate.playlistActive.folderName ? appstate.playlistActive.folderName:''
+                    visible: displayPath !== '' && options.playerDisplayDirectoryName
 
-                Column {
-                    width:parent.width
+                    text: displayPath
+                    horizontalAlignment: Text.AlignHCenter
 
-                    Label {
-                        width: parent.width - Theme.paddingSmall * 2
-                        x: Theme.paddingSmall
-                        id: fileNameLabel
-                        //readOnly: true
-                        //maximumLineCount: 3
-                        //height: Theme.itemSizeNormal * 3
-                        //elide: Text.ElideRight
-                        text: appstate.playlistActive ? appstate.playlistActive.baseName :''
-                        //StandardPaths.data + ' - ' + StandardPaths.documents + ' - ' + StandardPaths.genericData + ' - ' + StandardPaths.music + ' - ' + StandardPaths.pictures + ' - ' + StandardPaths.videos + ' - '
-                        //  options.directory
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Theme.highlightColor
-                        wrapMode: 'WrapAtWordBoundaryOrAnywhere'
+                    color: Theme.secondaryHighlightColor
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    wrapMode: 'WrapAtWordBoundaryOrAnywhere'
+                }
+
+                Slider {
+                    id: currentPositionSlider
+                    value: Math.max( realvalue, appstate.currentPosition)
+                    property real realvalue: playback.position
+                    onRealvalueChanged: {
+
+                        value = Math.max( realvalue, appstate.currentPosition)
                     }
 
-                    Label {
-                        width: parent.width - Theme.paddingSmall * 2
-                        x: Theme.paddingSmall
-                        id: fileFolderLabel
-                        property string displayPath:appstate.playlistActive && appstate.playlistActive.folderName ? appstate.playlistActive.folderName:''
-                        visible: displayPath !== '' && options.playerDisplayDirectoryName
-                        //maximumLineCount: 3
-                        //elide: Text.ElideRight
-                        text: displayPath
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: Theme.secondaryHighlightColor
-                        font.pixelSize: Theme.fontSizeExtraSmall
-                        wrapMode: 'WrapAtWordBoundaryOrAnywhere'
-                    }
+                    minimumValue: 0
+                    maximumValue: appstate.playlistActive && appstate.playlistActive.duration > 0? appstate.playlistActive.duration:0.0001
+                    width: parent.width
+                    height: Theme.itemSizeExtraSmall
+                    visible: appstate.playlistIndex != -1
+                    label: formatMSeconds( value)+" / "+formatMSeconds(maximumValue) +' ('+ (Math.floor(( currentPositionSlider.value / currentPositionSlider.maximumValue) * 1000 ) / 10)+'%)'
+                    //Rectangle { anchors.fill: parent; color: "red"; opacity: 0.3; z:-1;}
 
-                    Slider {
-                        id: currentPositionSlider
-                        value: Math.max( realvalue, appstate.currentPosition)
-                        property real realvalue: playback.position
-                        onRealvalueChanged: {
-
-                            value = Math.max( realvalue, appstate.currentPosition)
-                        }
-
-                        minimumValue: 0
-                        maximumValue: appstate.playlistActive && appstate.playlistActive.duration > 0? appstate.playlistActive.duration:0.0001
-                        width: parent.width
-                        height: Theme.itemSizeExtraSmall
-                        visible: appstate.playlistIndex != -1
-                        label: formatMSeconds( value)+" / "+formatMSeconds(maximumValue) +' ('+ (Math.floor(( currentPositionSlider.value / currentPositionSlider.maximumValue) * 1000 ) / 10)+'%)'
-                        //Rectangle { anchors.fill: parent; color: "red"; opacity: 0.3; z:-1;}
-
-                        onClicked: {
+                    onPressedChanged: {
+                        if (!pressed) {
                             //                            if(sleepTimer.running) {sleepTimer.restart();}
                             if(value + 100 >= appstate.playlistActive.duration){//does not quite set it at the end, so skipping gets confused.
                                 value = appstate.playlistActive.duration - 100;
@@ -602,62 +200,57 @@ Page {
                             appstate.currentPosition = value;
                             //also does not update state?!
                             playback.seek(value);
+                            value = Math.max( realvalue, appstate.currentPosition)
                         }
                     }
-
-
-                    Slider {
-                        id: totalPosition
-                        property int previousDuration: appstate.playlistActive.playlistOffset
-                        value: (appstate.playlistActive ? appstate.playlistActive.playlistOffset:0) + currentPositionSlider.value
-                        visible: options.playerDisplayDirectoryProgress && appstate.playlistIndex > -1 && appstate.playlist.count > 1// options.directoryFiles && options.directoryFiles.length > 1// && appstate.playlistIndex !== -1
-                        opacity: 0.5
-                        minimumValue: 0
-                        height: Theme.itemSizeExtraSmall
-                        Label {
-                            color: Theme.secondaryColor
-                            width: parent.width
-                            height: Theme.itemSizeSmall
-                            opacity: 0.8
-                            horizontalAlignment: Text.AlignHCenter
-                            anchors.bottom: parent.bottom
-                            verticalAlignment: Text.AlignBottom
-                            font.pixelSize: Theme.fontSizeExtraSmall
-                            visible: appstate.playlistIndex > -1 && appstate.playlist.count > 1
-                            text:  qsTr('%1 / %2 (File %L3 of %L4)', 'formatted file/directory durations, then file number/count )').arg(formatMSeconds( totalPosition.value)).arg(formatMSeconds(totalPosition.maximumValue)).arg(appstate.playlistIndex+1).arg(appstate.playlist.count)
-                        }
-                        maximumValue: appstate.playlist.duration
-                        enabled: false
-                        width: parent.width
-                        handleVisible: false
-
-
-                        MouseArea {
-                            anchors.fill: totalPosition
-                            onClicked: {
-
-                                totalDurationNotification.show(2000)
-                            }
-
-                            InlineNotification {
-                                id: totalDurationNotification
-                                //isvisible: true
-                                anchors.centerIn: parent
-                                height:isvisible ? parent.height : 0
-                                width: totalPosition.width
-                                property int totalperc: totalPosition.maximumValue ? (Math.floor(( totalPosition.value / totalPosition.maximumValue) * 1000 ) / 10) : 0
-                                text: qsTr('%1% played in Total', 'directory progress', totalperc).arg(totalperc)
-                            }
-                        }
-                    }
-
                 }
 
 
+                Slider {
+                    id: totalPosition
+                    property int previousDuration: appstate.playlistActive.playlistOffset
+                    value: (appstate.playlistActive ? appstate.playlistActive.playlistOffset:0) + currentPositionSlider.value
+                    visible: options.playerDisplayDirectoryProgress && appstate.playlistIndex > -1 && appstate.playlist.count > 1// options.directoryFiles && options.directoryFiles.length > 1// && appstate.playlistIndex !== -1
+                    opacity: 0.5
+                    minimumValue: 0
+                    height: Theme.itemSizeExtraSmall
+                    Label {
+                        color: Theme.secondaryColor
+                        width: parent.width
+                        height: Theme.itemSizeSmall
+                        opacity: 0.8
+                        horizontalAlignment: Text.AlignHCenter
+                        anchors.bottom: parent.bottom
+                        verticalAlignment: Text.AlignBottom
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        visible: appstate.playlistIndex > -1 && appstate.playlist.count > 1
+                        text:  qsTr('%1 / %2 (File %L3 of %L4)', 'formatted file/directory durations, then file number/count )').arg(formatMSeconds( totalPosition.value)).arg(formatMSeconds(totalPosition.maximumValue)).arg(appstate.playlistIndex+1).arg(appstate.playlist.count)
+                    }
+                    maximumValue: appstate.playlist.duration
+                    enabled: false
+                    width: parent.width
+                    handleVisible: false
 
+
+                    MouseArea {
+                        anchors.fill: totalPosition
+                        onClicked: {
+
+                            totalDurationNotification.show(2000)
+                        }
+
+                        InlineNotification {
+                            id: totalDurationNotification
+                            //isvisible: true
+                            anchors.centerIn: parent
+                            height:isvisible ? parent.height : 0
+                            width: totalPosition.width
+                            property int totalperc: totalPosition.maximumValue ? (Math.floor(( totalPosition.value / totalPosition.maximumValue) * 1000 ) / 10) : 0
+                            text: qsTr('%1% played in Total', 'directory progress', totalperc).arg(totalperc)
+                        }
+                    }
+                }
             }
-
-
         }
 
         //control panel
